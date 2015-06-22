@@ -6,7 +6,6 @@
 	<meta name="viewport"
 	      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"/>
 	<script src="dist/js/villa.js"></script>
-	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700,800' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="dist/css/villa.min.css"/>
 	<link rel="stylesheet" href="dist/css/mowe.min.css"/>
 	<!--[if lt IE 9]>
@@ -18,7 +17,181 @@
 </head>
 <body>
 
+<div class="flex">
+	<button id="back">back</button>
+	<span id="month"></span>
+	<button id="next">next</button>
+</div>
 
+<script>
+
+	var getMonthDays;
+	getMonthDays = function (year, month) {
+		return new Date(year, month, 0).getDate();
+	};
+
+	var getYearMonthDays;
+	getYearMonthDays = function(year) {
+		var a = [];
+		for (var i = 1; i <= 12; i++)
+			a.push(getMonthDays(year, i));
+		return a;
+	};
+
+	var getYearSchedule;
+	getYearSchedule = function(year) {
+
+		var s = [];
+
+		for (var i = 0; i < 12; i++) {
+
+			var days = getMonthDays(year, i);
+			var month = [];
+
+			for (var j = 1; j <= days; j++)
+				month.push(j);
+
+			s.push(month);
+
+		}
+
+		return s;
+
+	};
+
+	var buildDay;
+	buildDay = function(date, active) {
+		var a, n;
+
+		a = document.createElement('span');
+		a.classList.add('day');
+		if (!active) a.classList.add('active');
+		n = document.createTextNode(date.getDate().toString());
+		a.setAttribute('date', date.toDateString());
+		a.appendChild(n);
+
+		return a;
+	};
+
+	var buildYearSchedule;
+	buildYearSchedule = function (y, m) {
+		m--;
+		var body = document.body;
+		var currentSchedule = body.getElementsByClassName('schedule');
+
+		if (currentSchedule.length) {
+			body.removeChild(currentSchedule[0]);
+		}
+
+		var month, s, week;
+
+		s = document.createElement('div');
+		s.classList.add('schedule');
+
+		month = document.createElement('div');
+		month.classList.add('month');
+
+		week = document.createElement('div');
+		week.classList.add('week');
+
+		var days = getMonthDays(y, m + 1);
+
+		var fd = new Date(y, m, 1);         // first day of month
+		var ld = new Date(y, m, days);      // last day of month
+
+		document.getElementById('month').innerHTML = fd.toLocaleDateString();
+
+		var w = 7;     // week day count
+
+		if (fd.getDay()) {
+			var a = fd.getDay();
+			var b = getMonthDays(y, m);
+			for (var i = b - a + 1; i <= b; i++) {
+				var o = new Date(y, m - 1, i);
+				week.appendChild(buildDay(o, true));
+			}
+			w -= a;
+		}
+
+		for (var d = 1; d <= days; d++) {
+
+			var o = new Date(y, m, d);
+			week.appendChild(buildDay(o));
+
+			if (!--w) {
+				month.appendChild(week);
+				week = document.createElement('div');
+				week.classList.add('week');
+				w = 7;
+			}
+
+		}
+
+		if (ld.getDay() < 6) {
+			var a = ld.getDay();
+			for (var i = 1; i < (7 - a); i++) {
+				var o = new Date(y, m - 1, i);
+				week.appendChild(buildDay(o, true));
+			}
+		}
+
+		month.appendChild(week);
+
+		s.appendChild(month);
+
+		body.insertBefore(s, body.lastChild);
+	};
+
+	var year = 2015;
+	var month = 6;
+
+	var b, f;
+	b = performance.now();
+	buildYearSchedule(year, month);
+	f = performance.now();
+	console.log(f-b);
+
+	var backMonth, nextMonth;
+	backMonth = function() {
+		month--;
+		var b, f;
+		b = performance.now();
+		buildYearSchedule(year, month);
+		f = performance.now();
+		console.log(f-b);
+	};
+
+	nextMonth = function() {
+		month++;
+		var b, f;
+		b = performance.now();
+		buildYearSchedule(year, month);
+		f = performance.now();
+		console.log(f-b);
+	};
+
+	document.getElementById('back').addEventListener('click', backMonth);
+	document.getElementById('next').addEventListener('click', nextMonth);
+
+</script>
+
+<style scoped="scoped">
+	.week {
+		display: flex;
+		flex-direction: row;
+		margin: 1em 0;
+	}
+
+	.week .day {
+		background-color: #fafafa;
+		text-align: center;
+		width: 100%;
+	}
+
+	.week .day.active {
+		background-color: #eeeeee;
+	}
+</style>
 
 </body>
 </html>
